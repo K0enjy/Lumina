@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/ui/ThemeProvider'
 import { ZenModeProvider } from '@/components/zen/ZenModeContext'
 import { AppShell } from '@/components/ui/AppShell'
 import { ServiceWorkerRegistrar } from '@/components/ui/ServiceWorkerRegistrar'
+import { OfflineIndicator } from '@/components/ui/OfflineIndicator'
 import './globals.css'
 
 const inter = Inter({
@@ -50,6 +51,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <ServiceWorkerRegistrar />
+        <OfflineIndicator />
         <ThemeProvider>
           <ZenModeProvider>
             <AppShell>{children}</AppShell>
