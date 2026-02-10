@@ -9,13 +9,13 @@ type ButtonProps = ComponentPropsWithRef<'button'> & {
 }
 
 const baseStyles =
-  'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+  'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:opacity-50 disabled:pointer-events-none'
 
 const variantStyles = {
   primary: 'bg-[var(--accent)] text-white hover:opacity-90 active:opacity-80',
   secondary:
-    'bg-[var(--surface)] text-[var(--text)] border border-[var(--text-secondary)]/20 hover:bg-[var(--accent)]/10',
-  ghost: 'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--surface)]',
+    'bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] hover:bg-[var(--accent)]/10',
+  ghost: 'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text)]',
 }
 
 const sizeStyles = {
@@ -25,11 +25,13 @@ const sizeStyles = {
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', className, ...props }, ref) => {
+  ({ variant = 'primary', size = 'md', className, disabled, ...props }, ref) => {
     return (
       <button
         ref={ref}
         className={cn(baseStyles, variantStyles[variant], sizeStyles[size], className)}
+        disabled={disabled}
+        aria-disabled={disabled || undefined}
         {...props}
       />
     )
