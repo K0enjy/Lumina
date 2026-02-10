@@ -112,16 +112,29 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
   }, [])
 
   // Typewriter scrolling: keep cursor line vertically centered in zen mode
+  // Uses requestAnimationFrame to coalesce rapid updates and prevent scroll jank
+  const scrollRafRef = useRef<number | null>(null)
+
   useEffect(() => {
     if (!editor || !isZen) return
 
     const scrollCursorToCenter = () => {
       if (!editor.view.hasFocus()) return
-      const { node } = editor.view.domAtPos(editor.state.selection.anchor)
-      const element = node instanceof HTMLElement ? node : node.parentElement
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (scrollRafRef.current !== null) {
+        cancelAnimationFrame(scrollRafRef.current)
       }
+      scrollRafRef.current = requestAnimationFrame(() => {
+        scrollRafRef.current = null
+        try {
+          const { node } = editor.view.domAtPos(editor.state.selection.anchor)
+          const element = node instanceof HTMLElement ? node : node.parentElement
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        } catch {
+          // domAtPos can throw during editor state transitions
+        }
+      })
     }
 
     editor.on('update', scrollCursorToCenter)
@@ -130,6 +143,10 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
     return () => {
       editor.off('update', scrollCursorToCenter)
       editor.off('selectionUpdate', scrollCursorToCenter)
+      if (scrollRafRef.current !== null) {
+        cancelAnimationFrame(scrollRafRef.current)
+        scrollRafRef.current = null
+      }
     }
   }, [editor, isZen])
 
