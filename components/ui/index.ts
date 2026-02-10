@@ -13,6 +13,11 @@ export type { BadgeProps } from './Badge'
 export { Sidebar } from './Sidebar'
 export type { SidebarProps } from './Sidebar'
 
+export { SidebarProvider, useSidebar } from './SidebarProvider'
+export type { SidebarContextValue } from './SidebarProvider'
+
+export { AppShell } from './AppShell'
+
 export { ThemeProvider, useTheme } from './ThemeProvider'
 export type { Theme, ThemeContextValue } from './ThemeProvider'
 export { ThemeToggle } from './ThemeToggle'

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useSidebar } from '@/components/ui/SidebarProvider'
 
 type SidebarProps = {
   className?: string
@@ -64,9 +65,9 @@ const navItems = [
 
 function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const { isOpen, setIsOpen } = useSidebar()
 
-  const closeMobile = useCallback(() => setMobileOpen(false), [])
+  const closeMobile = useCallback(() => setIsOpen(false), [setIsOpen])
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
@@ -99,41 +100,17 @@ function Sidebar({ className }: SidebarProps) {
 
   const sidebarInner = (
     <div className="flex h-full flex-col">
-      {/* Logo / Title */}
       <div className="flex h-16 items-center px-6">
         <span className="text-xl font-bold text-[var(--text)]">Lumina</span>
       </div>
-
-      {/* Navigation */}
       {navContent}
     </div>
   )
 
   return (
     <>
-      {/* Hamburger button — mobile only */}
-      <button
-        type="button"
-        onClick={() => setMobileOpen(true)}
-        className="fixed left-4 top-4 z-50 inline-flex items-center justify-center rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text)] md:hidden"
-        aria-label="Open sidebar"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path d="M4 6H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M4 12H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </button>
-
       {/* Mobile backdrop */}
-      {mobileOpen && (
+      {isOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/50 md:hidden"
           onClick={closeMobile}
@@ -145,7 +122,7 @@ function Sidebar({ className }: SidebarProps) {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-40 w-60 bg-[var(--surface)] border-r border-[var(--border)] transition-transform duration-300 md:hidden',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          isOpen ? 'translate-x-0' : '-translate-x-full',
           className
         )}
       >
