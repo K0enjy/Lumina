@@ -40,6 +40,7 @@ export function AddTask({ onAdd }: AddTaskProps) {
       <Input
         ref={inputRef}
         placeholder="Add a task..."
+        data-testid="add-task-input"
         className="flex-1 min-w-[160px] border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
       />
 
@@ -49,6 +50,7 @@ export function AddTask({ onAdd }: AddTaskProps) {
             key={p.value}
             type="button"
             onClick={() => setPriority(p.value)}
+            data-testid={`add-task-priority-${p.value}`}
             className={cn(
               'w-4 h-4 rounded-full transition-all duration-200',
               p.color,
@@ -62,7 +64,7 @@ export function AddTask({ onAdd }: AddTaskProps) {
         ))}
       </div>
 
-      <Button type="submit" variant="primary" size="sm">
+      <Button type="submit" variant="primary" size="sm" data-testid="add-task-submit">
         Add
       </Button>
     </form>

@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 
 type BadgeProps = {
   className?: string
+  'data-testid'?: string
 } & (
   | { variant: 'dot'; priority: 1 | 2 | 3; children?: never }
   | { variant: 'tag'; priority?: never; children: ReactNode }
@@ -20,7 +21,7 @@ const priorityLabels = {
   3: 'High priority',
 } as const
 
-function Badge({ className, ...props }: BadgeProps) {
+function Badge({ className, 'data-testid': testId, ...props }: BadgeProps) {
   if (props.variant === 'dot') {
     return (
       <span
@@ -31,6 +32,7 @@ function Badge({ className, ...props }: BadgeProps) {
         )}
         role="img"
         aria-label={priorityLabels[props.priority]}
+        data-testid={testId}
       />
     )
   }
