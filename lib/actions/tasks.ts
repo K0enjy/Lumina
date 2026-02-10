@@ -185,6 +185,5 @@ export async function archiveCompletedTasks(): Promise<
     .returning()
     .all()
 
-  revalidatePath('/')
   return { success: true, data: { archivedCount: deleted.length } }
 }
