@@ -29,16 +29,23 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
   const [tags, setTags] = useState<string[]>(initialTags)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const titleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingSavesRef = useRef(0)
 
   const debouncedSaveContent = useCallback(
     (content: string) => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
+        pendingSavesRef.current--
       }
       setSaveStatus('saving')
+      pendingSavesRef.current++
       saveTimeoutRef.current = setTimeout(async () => {
+        saveTimeoutRef.current = null
         await saveNoteContent(id, content)
-        setSaveStatus('saved')
+        pendingSavesRef.current--
+        if (pendingSavesRef.current === 0) {
+          setSaveStatus('saved')
+        }
       }, 1000)
     },
     [id]
@@ -82,11 +89,17 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
       setTitle(newTitle)
       if (titleTimeoutRef.current) {
         clearTimeout(titleTimeoutRef.current)
+        pendingSavesRef.current--
       }
       setSaveStatus('saving')
+      pendingSavesRef.current++
       titleTimeoutRef.current = setTimeout(async () => {
+        titleTimeoutRef.current = null
         await updateNote(id, { title: newTitle })
-        setSaveStatus('saved')
+        pendingSavesRef.current--
+        if (pendingSavesRef.current === 0) {
+          setSaveStatus('saved')
+        }
       }, 1000)
     },
     [id]
