@@ -24,6 +24,7 @@ export default function DesignSystemShowcase() {
                 <Button variant="primary" size="sm">Small</Button>
                 <Button variant="primary" size="md">Medium</Button>
                 <Button variant="primary" size="lg">Large</Button>
+                <Button variant="primary" disabled>Disabled</Button>
               </div>
             </div>
             <div className="space-y-2">
@@ -32,6 +33,7 @@ export default function DesignSystemShowcase() {
                 <Button variant="secondary" size="sm">Small</Button>
                 <Button variant="secondary" size="md">Medium</Button>
                 <Button variant="secondary" size="lg">Large</Button>
+                <Button variant="secondary" disabled>Disabled</Button>
               </div>
             </div>
             <div className="space-y-2">
@@ -40,6 +42,7 @@ export default function DesignSystemShowcase() {
                 <Button variant="ghost" size="sm">Small</Button>
                 <Button variant="ghost" size="md">Medium</Button>
                 <Button variant="ghost" size="lg">Large</Button>
+                <Button variant="ghost" disabled>Disabled</Button>
               </div>
             </div>
           </div>
