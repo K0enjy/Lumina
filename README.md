@@ -1,4 +1,4 @@
-<div align="center">
+<div align="center"/>
   <img src="public/icons/icon-512x512.svg" alt="Sequoia Logo" width="200"/>
 
 # Lumina
