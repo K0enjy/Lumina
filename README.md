@@ -23,6 +23,17 @@
   ![Dark Mode](screenshots/dark-mode.png)
 -->
 
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Docker Deployment](#docker-deployment)
+- [Commands](#commands)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Features
 
 - **Task Management with Priorities** — Create, organize, and track tasks with a three-tier priority system (low, medium, high). Mark tasks complete from the Today dashboard.
@@ -141,35 +152,95 @@ docker compose down
 
 ```
 lumina/
-├── app/                   # Next.js App Router pages
-│   ├── layout.tsx         # Root layout (sidebar, theme provider)
-│   ├── page.tsx           # Today dashboard
-│   ├── notes/             # Notes list and editor pages
-│   └── globals.css        # Tailwind + theme tokens
+├── app/                          # Next.js App Router pages and layouts
+│   ├── layout.tsx                # Root layout (sidebar, theme provider)
+│   ├── page.tsx                  # Today dashboard — default landing page
+│   ├── notes/
+│   │   ├── page.tsx              # Notes list view
+│   │   └── [id]/page.tsx         # Individual note editor page
+│   ├── globals.css               # Tailwind imports and CSS custom property theme tokens
+│   └── manifest.ts               # PWA manifest configuration
 ├── components/
-│   ├── ui/                # Shared UI components (Button, Card, Input, Badge)
-│   ├── tasks/             # Task management components
-│   ├── notes/             # Note display components
-│   ├── editor/            # Tiptap editor wrapper
-│   ├── search/            # Command palette
-│   └── zen/               # Zen mode and audio player
+│   ├── ui/                       # Reusable UI primitives (Button, Card, Input, Badge)
+│   ├── tasks/                    # Task management (TaskList, TaskItem, AddTask)
+│   ├── notes/                    # Note display components (NoteCard, NoteGrid)
+│   ├── editor/                   # Tiptap rich-text editor wrapper (NoteEditor)
+│   ├── search/                   # Command palette for keyboard-driven search
+│   └── zen/                      # Zen mode UI and ambient audio player
 ├── lib/
-│   ├── actions/           # Server Actions (tasks, notes, search)
-│   ├── db/                # Database connection
-│   └── utils.ts           # Shared utilities
+│   ├── actions/                  # Server Actions for mutations (tasks.ts, notes.ts, search.ts)
+│   ├── db/                       # Drizzle ORM database connection (index.ts)
+│   └── utils.ts                  # Shared utility functions
 ├── db/
-│   └── schema.ts          # Drizzle ORM schema
-├── drizzle/               # Generated migrations
-├── public/                # Static assets (audio, icons)
-├── Dockerfile
-├── docker-compose.yml
-└── package.json
+│   └── schema.ts                 # Drizzle ORM schema definitions (tables, columns, types)
+├── drizzle/                      # Auto-generated database migration files
+├── public/
+│   ├── audio/                    # Ambient sound files for Zen mode
+│   └── icons/                    # PWA icons and favicons
+├── drizzle.config.ts             # Drizzle Kit configuration
+├── next.config.ts                # Next.js configuration
+├── package.json                  # Dependencies and scripts
+├── Dockerfile                    # Multi-stage production build (oven/bun:alpine)
+├── docker-compose.yml            # Docker Compose service and volume definitions
+└── README.md
 ```
 
 ## Contributing
 
-Contributions are welcome. Please open an issue to discuss proposed changes before submitting a pull request.
+Contributions are welcome! Whether it's a bug fix, new feature, or documentation improvement, we appreciate your help.
+
+### Getting Started
+
+1. **Fork the repository** and clone your fork locally:
+
+   ```bash
+   git clone https://github.com/your-username/lumina.git
+   cd lumina
+   ```
+
+2. **Create a feature branch** from `main`:
+
+   ```bash
+   git checkout -b feat/your-feature-name
+   ```
+
+3. **Install dependencies** and set up the database:
+
+   ```bash
+   bun install
+   bunx drizzle-kit generate
+   bunx drizzle-kit migrate
+   ```
+
+4. **Make your changes**, following the coding conventions below.
+
+5. **Run tests** to make sure everything passes:
+
+   ```bash
+   bun test
+   ```
+
+6. **Commit your changes** with a clear, descriptive message and **open a pull request** against `main`.
+
+### Coding Conventions
+
+Lumina follows strict conventions to keep the codebase consistent. See `CLAUDE.md` for the full specification. Key points:
+
+- **Server Components by default** — Only add `'use client'` when a component needs state, effects, event handlers, or browser APIs.
+- **Server Actions for all mutations** — Data mutations go through Server Actions in `lib/actions/`, not API routes. Validate inputs with Zod and call `revalidatePath()` after writes.
+- **Strict TypeScript** — No `any` types. Use `type` over `interface` unless extending. Use the `@/` path alias for imports.
+- **Tailwind-only styling** — Use Tailwind CSS utility classes exclusively. No inline styles, no additional CSS libraries.
+- **Drizzle ORM for database access** — All queries use the Drizzle query builder through `lib/db/`. Never import `bun:sqlite` directly outside of `lib/db/`.
+
+### Pull Request Guidelines
+
+- Keep PRs focused on a single change — avoid mixing unrelated modifications.
+- Describe what your PR does and why in the description.
+- Ensure `bun test` passes before submitting.
+- If your change affects the UI, include a screenshot or brief description of the visual result.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+<!-- TODO: Create a LICENSE file with the full MIT license text -->
