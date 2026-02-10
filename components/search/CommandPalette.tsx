@@ -7,11 +7,6 @@ import { searchAll, type SearchResult } from '@/lib/actions/search'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
 
-type CommandPaletteProps = {
-  isOpen: boolean
-  onClose: () => void
-}
-
 function CheckboxIcon() {
   return (
     <svg
@@ -52,12 +47,13 @@ function DocumentIcon() {
   )
 }
 
-function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
+function CommandPalette() {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
+  const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [selectedIndex, setSelectedIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -68,16 +64,22 @@ function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   // Flat list for keyboard navigation
   const flatResults = [...taskResults, ...noteResults]
 
+  const close = useCallback(() => setIsOpen(false), [])
+
   // Debounced search
   const performSearch = useCallback(async (searchQuery: string) => {
     setIsLoading(true)
     const result = await searchAll(searchQuery)
     if (result.success) {
       setResults(result.data)
-      setActiveIndex(0)
     }
     setIsLoading(false)
   }, [])
+
+  // Reset selectedIndex when query changes
+  useEffect(() => {
+    setSelectedIndex(0)
+  }, [query])
 
   // Handle input changes with debounce
   const handleInputChange = useCallback((value: string) => {
@@ -87,17 +89,40 @@ function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     }
     debounceRef.current = setTimeout(() => {
       performSearch(value)
-    }, 300)
+    }, 200)
   }, [performSearch])
+
+  // Global keyboard shortcut: CMD/Ctrl+K to toggle, ESC to close
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setIsOpen((prev) => !prev)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
+  // Lock body scroll when open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('overflow-hidden')
+    } else {
+      document.body.classList.remove('overflow-hidden')
+    }
+    return () => {
+      document.body.classList.remove('overflow-hidden')
+    }
+  }, [isOpen])
 
   // Auto-focus input and load recent items on open
   useEffect(() => {
     if (isOpen) {
       setQuery('')
       setResults([])
-      setActiveIndex(0)
+      setSelectedIndex(0)
       performSearch('')
-      // Small delay to ensure the modal is rendered before focusing
       const timer = setTimeout(() => {
         inputRef.current?.focus()
       }, 50)
@@ -116,42 +141,42 @@ function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
   // Navigate to selected result
   const navigateToResult = useCallback((result: SearchResult) => {
-    onClose()
+    setIsOpen(false)
     if (result.type === 'task') {
       router.push('/')
     } else {
       router.push(`/notes/${result.id}`)
     }
-  }, [onClose, router])
+  }, [router])
 
-  // Keyboard navigation
+  // Keyboard navigation inside the modal
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIndex((prev) =>
+      setSelectedIndex((prev) =>
         flatResults.length === 0 ? 0 : (prev + 1) % flatResults.length
       )
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setActiveIndex((prev) =>
+      setSelectedIndex((prev) =>
         flatResults.length === 0 ? 0 : (prev - 1 + flatResults.length) % flatResults.length
       )
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      if (flatResults[activeIndex]) {
-        navigateToResult(flatResults[activeIndex])
+      if (flatResults[selectedIndex]) {
+        navigateToResult(flatResults[selectedIndex])
       }
     } else if (e.key === 'Escape') {
       e.preventDefault()
-      onClose()
+      close()
     }
-  }, [flatResults, activeIndex, navigateToResult, onClose])
+  }, [flatResults, selectedIndex, navigateToResult, close])
 
   // Scroll active item into view
   const activeItemRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     activeItemRef.current?.scrollIntoView({ block: 'nearest' })
-  }, [activeIndex])
+  }, [selectedIndex])
 
   // Track the running section index for mapping flat index to section rows
   let runningIndex = 0
@@ -169,7 +194,7 @@ function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={close}
           />
 
           {/* Dialog */}
@@ -236,13 +261,13 @@ function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     return (
                       <button
                         key={result.id}
-                        ref={index === activeIndex ? activeItemRef : undefined}
+                        ref={index === selectedIndex ? activeItemRef : undefined}
                         type="button"
                         onClick={() => navigateToResult(result)}
-                        onMouseEnter={() => setActiveIndex(index)}
+                        onMouseEnter={() => setSelectedIndex(index)}
                         className={cn(
                           'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors',
-                          index === activeIndex
+                          index === selectedIndex
                             ? 'bg-[var(--accent)]/10 text-[var(--text)]'
                             : 'text-[var(--text)] hover:bg-[var(--surface)]'
                         )}
@@ -280,13 +305,13 @@ function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     return (
                       <button
                         key={result.id}
-                        ref={index === activeIndex ? activeItemRef : undefined}
+                        ref={index === selectedIndex ? activeItemRef : undefined}
                         type="button"
                         onClick={() => navigateToResult(result)}
-                        onMouseEnter={() => setActiveIndex(index)}
+                        onMouseEnter={() => setSelectedIndex(index)}
                         className={cn(
                           'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors',
-                          index === activeIndex
+                          index === selectedIndex
                             ? 'bg-[var(--accent)]/10 text-[var(--text)]'
                             : 'text-[var(--text)] hover:bg-[var(--surface)]'
                         )}
@@ -335,4 +360,3 @@ function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 }
 
 export { CommandPalette }
-export type { CommandPaletteProps }

@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useEffect, useState } from 'react'
+import { type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { SidebarProvider, useSidebar } from '@/components/ui/SidebarProvider'
 import { Sidebar } from '@/components/ui/Sidebar'
@@ -43,22 +43,6 @@ function Header() {
 
 function AppShellContent({ children }: { children: ReactNode }) {
   const { isZen } = useZenMode()
-  const [isPaletteOpen, setIsPaletteOpen] = useState(false)
-
-  const closePalette = useCallback(() => setIsPaletteOpen(false), [])
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        // Disable CMD+K when zen mode is active
-        if (isZen) return
-        e.preventDefault()
-        setIsPaletteOpen((prev) => !prev)
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [isZen])
 
   return (
     <div className="flex min-h-screen">
@@ -100,7 +84,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
       </div>
 
       <ZenMode />
-      <CommandPalette isOpen={isPaletteOpen} onClose={closePalette} />
+      <CommandPalette />
     </div>
   )
 }
