@@ -43,7 +43,12 @@ function NoteGrid({ notes }: NoteGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {notes.map((note) => {
-        const tags: string[] = note.tags ? JSON.parse(note.tags) : []
+        let tags: string[] = []
+        try {
+          tags = note.tags ? JSON.parse(note.tags) : []
+        } catch {
+          tags = []
+        }
         return (
           <NoteCard
             key={note.id}
