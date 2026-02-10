@@ -20,10 +20,8 @@ export function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -16 }}
       transition={{ duration: 0.2 }}
       className="group flex items-center gap-3 bg-[var(--surface)] rounded-xl px-4 py-3 border border-[var(--text-secondary)]/10"
     >
