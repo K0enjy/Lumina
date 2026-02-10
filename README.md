@@ -85,27 +85,44 @@ Open [http://localhost:3000](http://localhost:3000) in your browser. The develop
 
 ## Docker Deployment
 
-Lumina includes a multi-stage Dockerfile built on `oven/bun:alpine` for a minimal production image.
+### Quick Start with Docker
 
-### Quick Start
+1. Create a `docker-compose.yml`:
 
-Build and start the container:
-
-```bash
-docker compose up
+```yaml
+services:
+  lumina:
+    image: koenjy/lumina:latest
+    container_name: lumina
+    environment:
+      - NODE_ENV=production
+      - DATABASE_PATH=data/db.sqlite
+      - TZ=Europe/Rome
+    volumes:
+      - ./lumina/data:/app/data
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
 ```
 
-To run in detached mode (background):
+2. Create the data directory and start:
 
 ```bash
+mkdir -p lumina/data
 docker compose up -d
 ```
 
-The app will be available at [http://localhost:3000](http://localhost:3000).
+3. Open [http://localhost:3000](http://localhost:3000)
+
+That's it! The database is automatically initialized on first run. No manual migration or setup required.
+
+### Docker Hub
+
+Image available at: `koenjy/lumina:latest`
 
 ### Data Persistence
 
-SQLite data is persisted via a Docker volume. The `docker-compose.yml` mounts a local `./data` directory to `/app/data` inside the container, so your tasks and notes survive container restarts.
+All your tasks and notes are stored in `./lumina/data/db.sqlite`. This file is persisted on the host via the mounted volume, so your data survives container restarts and upgrades.
 
 ### Environment Variables
 
@@ -113,8 +130,11 @@ SQLite data is persisted via a Docker volume. The `docker-compose.yml` mounts a 
 |---|---|---|
 | `NODE_ENV` | `production` | Node environment |
 | `DATABASE_PATH` | `data/db.sqlite` | Path to the SQLite database file |
+| `TZ` | `UTC` | Timezone (e.g. `Europe/Rome`) |
 
-These are pre-configured in `docker-compose.yml` and typically do not need to be changed.
+### Platform Support
+
+Works on Linux, macOS, and Windows (with Docker Desktop).
 
 ### Stopping the Container
 
