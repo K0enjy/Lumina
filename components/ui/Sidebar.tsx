@@ -83,6 +83,7 @@ function Sidebar({ className }: SidebarProps) {
             key={item.href}
             href={item.href}
             onClick={closeMobile}
+            aria-current={active ? 'page' : undefined}
             className={cn(
               'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
               active
