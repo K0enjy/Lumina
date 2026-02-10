@@ -2,6 +2,12 @@
 
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import TaskList from '@tiptap/extension-task-list'
+import TaskItem from '@tiptap/extension-task-item'
 import { Markdown } from '@tiptap/markdown'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { saveNoteContent, updateNote } from '@/lib/actions/notes'
@@ -32,12 +38,14 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
         bulletList: { keepMarks: true },
         orderedList: { keepMarks: true },
       }),
+      Table,
+      TableRow,
+      TableCell,
+      TableHeader,
+      TaskList,
+      TaskItem.configure({ nested: true }),
       Markdown.configure({
-        html: false,
-        tightLists: true,
-        bulletListMarker: '-',
-        transformPastedText: true,
-        transformCopiedText: true,
+        markedOptions: { gfm: true },
       }),
     ],
     content: initialContent,
