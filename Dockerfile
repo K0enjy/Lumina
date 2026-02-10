@@ -15,6 +15,7 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+RUN mkdir -p data
 RUN bun --bun run build
 
 # Stage 3: Production runner
