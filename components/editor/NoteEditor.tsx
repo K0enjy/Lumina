@@ -51,6 +51,7 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
   )
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
@@ -151,7 +152,7 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
   }, [editor, isZen])
 
   return (
-    <div className="flex flex-col h-full">
+    <div data-testid="note-editor" className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Link
@@ -226,11 +227,12 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
         onChange={(e) => handleTitleChange(e.target.value)}
         placeholder="Untitled"
         aria-label="Note title"
+        data-testid="note-title-input"
         className="w-full text-3xl font-bold text-text bg-transparent border-none outline-none placeholder:text-text-secondary/50 mb-4"
       />
 
       {/* Editor */}
-      <div className="flex-1 bg-surface rounded-[20px] border border-border/50 p-6 mb-4">
+      <div data-testid="note-editor-content" className="flex-1 bg-surface rounded-[20px] border border-border/50 p-6 mb-4">
         <EditorContent editor={editor} />
       </div>
 

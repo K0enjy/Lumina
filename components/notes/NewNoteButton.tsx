@@ -19,7 +19,7 @@ function NewNoteButton() {
   }
 
   return (
-    <Button onClick={handleCreate} disabled={isPending}>
+    <Button data-testid="new-note-button" onClick={handleCreate} disabled={isPending}>
       <svg
         className="w-4 h-4 mr-2"
         fill="none"

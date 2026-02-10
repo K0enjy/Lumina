@@ -54,7 +54,7 @@ function getPreview(content: string | null): string {
 
 function NoteCard({ id, title, content, tags, updatedAt }: NoteCardProps) {
   return (
-    <Link href={`/notes/${id}`} className="block">
+    <Link href={`/notes/${id}`} className="block" data-testid="note-card">
       <AnimatedCard className="h-full cursor-pointer">
         <div className="flex flex-col gap-3">
           <h3 className="text-base font-semibold text-[var(--text)] line-clamp-1">
