@@ -33,7 +33,7 @@ function sortTasks(taskList: Task[], reorderingIds: Set<string>): Task[] {
       return a.status === 'todo' ? -1 : 1
     }
     if (a.priority !== b.priority) return b.priority - a.priority
-    return a.createdAt - b.createdAt
+    return b.createdAt - a.createdAt
   })
 
   completed.sort((a, b) => b.updatedAt - a.updatedAt)
