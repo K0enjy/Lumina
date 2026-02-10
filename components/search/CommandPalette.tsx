@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'motion/react'
 import { searchAll, type SearchResult } from '@/lib/actions/search'
@@ -54,7 +54,7 @@ function CommandPalette() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Group results by type
@@ -66,14 +66,14 @@ function CommandPalette() {
 
   const close = useCallback(() => setIsOpen(false), [])
 
-  // Debounced search
-  const performSearch = useCallback(async (searchQuery: string) => {
-    setIsLoading(true)
-    const result = await searchAll(searchQuery)
-    if (result.success) {
-      setResults(result.data)
-    }
-    setIsLoading(false)
+  // Debounced search using useTransition
+  const performSearch = useCallback((searchQuery: string) => {
+    startTransition(async () => {
+      const result = await searchAll(searchQuery)
+      if (result.success) {
+        setResults(result.data)
+      }
+    })
   }, [])
 
   // Reset selectedIndex when query changes
@@ -81,7 +81,7 @@ function CommandPalette() {
     setSelectedIndex(0)
   }, [query])
 
-  // Handle input changes with debounce
+  // Handle input changes with 200ms debounce
   const handleInputChange = useCallback((value: string) => {
     setQuery(value)
     if (debounceRef.current) {
@@ -238,20 +238,26 @@ function CommandPalette() {
 
             {/* Results */}
             <div className="max-h-80 overflow-y-auto p-2">
-              {isLoading && (
+              {isPending && (
                 <div className="flex items-center justify-center py-8">
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
                   <span className="ml-2 text-sm text-[var(--text-secondary)]">Searching...</span>
                 </div>
               )}
 
-              {!isLoading && flatResults.length === 0 && (
+              {!isPending && query.trim() === '' && flatResults.length === 0 && (
+                <div className="py-8 text-center text-sm text-[var(--text-secondary)]">
+                  Type to search tasks and notes...
+                </div>
+              )}
+
+              {!isPending && query.trim() !== '' && flatResults.length === 0 && (
                 <div className="py-8 text-center text-sm text-[var(--text-secondary)]">
                   No results found
                 </div>
               )}
 
-              {!isLoading && taskResults.length > 0 && (
+              {!isPending && taskResults.length > 0 && (
                 <div className="mb-1">
                   <div className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                     Tasks
@@ -285,6 +291,7 @@ function CommandPalette() {
                             </div>
                           )}
                         </div>
+                        <span className="shrink-0 text-xs text-[var(--text-secondary)]">Task</span>
                         <Badge
                           variant="dot"
                           priority={result.priority as 1 | 2 | 3}
@@ -295,7 +302,7 @@ function CommandPalette() {
                 </div>
               )}
 
-              {!isLoading && noteResults.length > 0 && (
+              {!isPending && noteResults.length > 0 && (
                 <div className="mb-1">
                   <div className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                     Notes
@@ -329,6 +336,7 @@ function CommandPalette() {
                             </div>
                           )}
                         </div>
+                        <span className="shrink-0 text-xs text-[var(--text-secondary)]">Note</span>
                       </button>
                     )
                   })}
