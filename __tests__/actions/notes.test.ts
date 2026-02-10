@@ -41,6 +41,11 @@ describe('createNote', () => {
     expect(result.success).toBe(false)
   })
 
+  test('rejects whitespace-only title', async () => {
+    const result = await createNote('   ')
+    expect(result.success).toBe(false)
+  })
+
   test('rejects title exceeding 200 characters', async () => {
     const longTitle = 'a'.repeat(201)
     const result = await createNote(longTitle)

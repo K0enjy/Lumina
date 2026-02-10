@@ -10,7 +10,7 @@ import { extractTags } from '@/lib/utils'
 // --- Zod schemas ---
 
 const createNoteSchema = z.object({
-  title: z.string().min(1).max(200),
+  title: z.string().trim().min(1).max(200),
 })
 
 const updateNoteSchema = z.object({
