@@ -114,6 +114,28 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
     }
   }, [])
 
+  // Typewriter scrolling: keep cursor line vertically centered in zen mode
+  useEffect(() => {
+    if (!editor || !isZen) return
+
+    const scrollCursorToCenter = () => {
+      if (!editor.view.hasFocus()) return
+      const { node } = editor.view.domAtPos(editor.state.selection.anchor)
+      const element = node instanceof HTMLElement ? node : node.parentElement
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
+
+    editor.on('update', scrollCursorToCenter)
+    editor.on('selectionUpdate', scrollCursorToCenter)
+
+    return () => {
+      editor.off('update', scrollCursorToCenter)
+      editor.off('selectionUpdate', scrollCursorToCenter)
+    }
+  }, [editor, isZen])
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
