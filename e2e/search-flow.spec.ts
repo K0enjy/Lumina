@@ -15,10 +15,10 @@ test.describe('Command Palette Search Flow', () => {
     // Command palette should now be visible
     await expect(page.getByTestId('command-palette')).toBeVisible()
 
-    // The search input should be visible and focused
+    // The search input should be visible and focused (component has a small delay before focusing)
     const input = page.getByTestId('command-palette-input')
     await expect(input).toBeVisible()
-    await expect(input).toBeFocused()
+    await expect(input).toBeFocused({ timeout: 5000 })
   })
 
   test('searches for a note title and selects a result to navigate to the note page', async ({ page }) => {

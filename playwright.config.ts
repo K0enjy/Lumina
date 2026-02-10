@@ -21,13 +21,15 @@ const bunPath = findBunPath()
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
-  retries: 0,
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? [['html', { open: 'never' }], ['list']] : 'list',
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
   use: {
     baseURL: 'http://localhost:3000',
     headless: true,
     screenshot: 'only-on-failure',
+    trace: 'on-first-retry',
   },
   webServer: {
     command: `"${bunPath}" --bun next dev --turbopack`,
