@@ -1,3 +1,6 @@
+<div align="center">
+  <img src="public/icons/icon-512x512.svg" alt="Sequoia Logo" width="200"/>
+
 # Lumina
 
 **A minimalist, self-hosted productivity app combining daily focus task management with a powerful note-taking engine. Built with functional minimalism and Apple-style aesthetics.**
