@@ -29,9 +29,6 @@ next-env.d.ts
 *.db
 *.sqlite
 
-# bun
-bun.lock
-
 # data
 data/
 
