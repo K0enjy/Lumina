@@ -15,6 +15,7 @@ import { extractTags } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { useZenMode } from '@/components/zen/ZenModeContext'
 
 type NoteEditorProps = {
   id: string
@@ -30,6 +31,7 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const titleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingSavesRef = useRef(0)
+  const { isZen, toggleZen } = useZenMode()
 
   const debouncedSaveContent = useCallback(
     (content: string) => {
@@ -136,15 +138,47 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
           </svg>
           Back to notes
         </Link>
-        <span
-          className={cn(
-            'text-xs transition-opacity duration-200',
-            saveStatus === 'idle' ? 'opacity-0' : 'opacity-100',
-            saveStatus === 'saving' ? 'text-text-secondary' : 'text-green-500'
-          )}
-        >
-          {saveStatus === 'saving' ? 'Saving...' : 'Saved'}
-        </span>
+        <div className="flex items-center gap-3">
+          {/* Zen mode toggle button */}
+          <button
+            type="button"
+            onClick={toggleZen}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors',
+              isZen
+                ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text)]'
+            )}
+            aria-label="Toggle Zen Mode"
+            title="Toggle Zen Mode (Ctrl+J)"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+              <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+              <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+              <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+            </svg>
+          </button>
+          <span
+            className={cn(
+              'text-xs transition-opacity duration-200',
+              saveStatus === 'idle' ? 'opacity-0' : 'opacity-100',
+              saveStatus === 'saving' ? 'text-text-secondary' : 'text-green-500'
+            )}
+          >
+            {saveStatus === 'saving' ? 'Saving...' : 'Saved'}
+          </span>
+        </div>
       </div>
 
       {/* Title */}
