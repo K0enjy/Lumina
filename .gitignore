@@ -31,3 +31,12 @@ next-env.d.ts
 
 # bun
 bun.lock
+
+# data
+data/
+
+# test artifacts
+test-results/
+
+# audit files
+PERFORMANCE_AUDIT.md
