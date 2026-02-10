@@ -338,6 +338,36 @@ describe('saveNoteContent', () => {
     expect(fetched?.content).toBe('Persisted content #test')
     expect(JSON.parse(fetched?.tags as string)).toEqual(['test'])
   })
+
+  test('special characters in content do not break tag extraction', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await saveNoteContent(
+      created.data.id,
+      'Content with <html> & "quotes" #valid-tag! $pecial chars #another_tag...'
+    )
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(JSON.parse(result.data.tags as string)).toEqual(['valid-tag', 'another_tag'])
+  })
+
+  test('empty content clears existing tags', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    // First save with tags
+    await saveNoteContent(created.data.id, 'Has #some #tags')
+    const withTags = await getNoteById(created.data.id)
+    expect(JSON.parse(withTags?.tags as string)).toEqual(['some', 'tags'])
+
+    // Then save empty content
+    const result = await saveNoteContent(created.data.id, '')
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.tags).toBe('[]')
+    expect(result.data.content).toBe('')
+  })
 })
 
 describe('extractTags (utility)', () => {
@@ -369,7 +399,36 @@ describe('extractTags (utility)', () => {
     expect(extractTags('# alone')).toEqual([])
   })
 
-  test('handles ## prefix', () => {
+  test('handles ## prefix attached to word', () => {
     expect(extractTags('##heading')).toEqual(['heading'])
+  })
+
+  test('ignores markdown heading syntax with space', () => {
+    expect(extractTags('## My Heading')).toEqual([])
+  })
+
+  test('ignores markdown heading lines but extracts inline tags', () => {
+    const text = '## Section Title\nSome text with #inline-tag here'
+    const tags = extractTags(text)
+    expect(tags).toContain('inline-tag')
+  })
+
+  test('extracts tags at various positions in text', () => {
+    const text = '#start middle #middle end #end'
+    expect(extractTags(text)).toEqual(['start', 'middle', 'end'])
+  })
+
+  test('extracts tags from multiline content', () => {
+    const text = 'Line one #first\nLine two #second\nLine three #third'
+    expect(extractTags(text)).toEqual(['first', 'second', 'third'])
+  })
+
+  test('case-sensitive tags are kept distinct', () => {
+    // The regex extracts as-is, so case matters for uniqueness
+    expect(extractTags('#React #react')).toEqual(['React', 'react'])
+  })
+
+  test('handles tag with numbers', () => {
+    expect(extractTags('Using #es2024 features')).toEqual(['es2024'])
   })
 })
