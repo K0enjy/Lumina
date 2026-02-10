@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { ThemeProvider } from '@/components/ui/ThemeProvider'
+import { ZenModeProvider } from '@/components/zen/ZenModeContext'
 import { AppShell } from '@/components/ui/AppShell'
 import './globals.css'
 
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <AppShell>{children}</AppShell>
+          <ZenModeProvider>
+            <AppShell>{children}</AppShell>
+          </ZenModeProvider>
         </ThemeProvider>
       </body>
     </html>
