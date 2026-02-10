@@ -1,47 +1,341 @@
 import { describe, test, expect, mock, beforeEach } from 'bun:test'
+import { createTestDb, resetTestDb } from '../helpers/test-db'
 
-// --- Mock next/cache ---
-mock.module('next/cache', () => ({
-  revalidatePath: mock(() => {}),
-}))
+// --- Set up in-memory DB and mocks before imports ---
 
-// --- Mock db with chainable query builder ---
-const mockGet = mock()
-const mockAll = mock()
-const mockReturning = mock(() => ({ all: mockAll }))
-const mockSet = mock(() => ({ where: mock(() => ({ returning: mockReturning })) }))
-const mockWhereSelect = mock(() => ({ get: mockGet }))
-const mockFrom = mock(() => ({ where: mockWhereSelect }))
-const mockSelect = mock(() => ({ from: mockFrom }))
-const mockUpdate = mock(() => ({ set: mockSet }))
+const { db: testDb, sqlite } = createTestDb()
 
-mock.module('@/lib/db', () => ({
-  db: {
-    select: mockSelect,
-    update: mockUpdate,
-  },
-}))
+mock.module('@/lib/db', () => ({ db: testDb }))
+mock.module('next/cache', () => ({ revalidatePath: mock(() => {}) }))
 
-// Import after mocks are set up
+const {
+  createNote,
+  updateNote,
+  deleteNote,
+  getNotes,
+  getNoteById,
+  saveNoteContent,
+} = await import('@/lib/actions/notes')
+
 const { extractTags } = await import('@/lib/utils')
-const { saveNoteContent } = await import('@/lib/actions/notes')
-const { revalidatePath } = await import('next/cache')
 
-// --- Test Data ---
-const VALID_UUID = '550e8400-e29b-41d4-a716-446655440000'
+// --- Tests ---
 
-const mockNote = {
-  id: VALID_UUID,
-  title: 'Test Note',
-  content: 'old content',
-  tags: '[]',
-  createdAt: 1700000000000,
-  updatedAt: 1700000000000,
-}
+describe('createNote', () => {
+  beforeEach(() => resetTestDb(sqlite))
 
-// --- extractTags ---
+  test('creates a note with valid title', async () => {
+    const result = await createNote('My First Note')
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.title).toBe('My First Note')
+    expect(result.data.content).toBe('')
+    expect(result.data.tags).toBe('[]')
+    expect(result.data.id).toBeTruthy()
+    expect(result.data.createdAt).toBeGreaterThan(0)
+    expect(result.data.updatedAt).toBeGreaterThan(0)
+  })
 
-describe('extractTags', () => {
+  test('rejects empty title', async () => {
+    const result = await createNote('')
+    expect(result.success).toBe(false)
+  })
+
+  test('rejects title exceeding 200 characters', async () => {
+    const longTitle = 'a'.repeat(201)
+    const result = await createNote(longTitle)
+    expect(result.success).toBe(false)
+  })
+
+  test('accepts title at exactly 200 characters', async () => {
+    const maxTitle = 'a'.repeat(200)
+    const result = await createNote(maxTitle)
+    expect(result.success).toBe(true)
+  })
+
+  test('generates unique IDs', async () => {
+    const r1 = await createNote('Note 1')
+    const r2 = await createNote('Note 2')
+    expect(r1.success && r2.success).toBe(true)
+    if (!r1.success || !r2.success) return
+    expect(r1.data.id).not.toBe(r2.data.id)
+  })
+})
+
+describe('updateNote', () => {
+  beforeEach(() => resetTestDb(sqlite))
+
+  test('updates title', async () => {
+    const created = await createNote('Original Title')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await updateNote(created.data.id, { title: 'Updated Title' })
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.title).toBe('Updated Title')
+  })
+
+  test('updates content', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await updateNote(created.data.id, { content: 'New content here' })
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.content).toBe('New content here')
+  })
+
+  test('updates tags', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await updateNote(created.data.id, { tags: ['work', 'important'] })
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(JSON.parse(result.data.tags as string)).toEqual(['work', 'important'])
+  })
+
+  test('updates multiple fields at once', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await updateNote(created.data.id, {
+      title: 'New Title',
+      content: 'New Content',
+      tags: ['tag1'],
+    })
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.title).toBe('New Title')
+    expect(result.data.content).toBe('New Content')
+    expect(JSON.parse(result.data.tags as string)).toEqual(['tag1'])
+  })
+
+  test('returns error for non-existent note', async () => {
+    const fakeId = '00000000-0000-0000-0000-000000000000'
+    const result = await updateNote(fakeId, { title: 'Nope' })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toBe('Note not found')
+    }
+  })
+
+  test('returns error for invalid (non-UUID) ID', async () => {
+    const result = await updateNote('bad-id', { title: 'Nope' })
+    expect(result.success).toBe(false)
+  })
+
+  test('rejects empty title in update', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await updateNote(created.data.id, { title: '' })
+    expect(result.success).toBe(false)
+  })
+
+  test('updates updatedAt timestamp', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const originalUpdatedAt = created.data.updatedAt
+    await new Promise((r) => setTimeout(r, 5))
+    const result = await updateNote(created.data.id, { title: 'Changed' })
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.updatedAt).toBeGreaterThanOrEqual(originalUpdatedAt)
+  })
+})
+
+describe('deleteNote', () => {
+  beforeEach(() => resetTestDb(sqlite))
+
+  test('deletes an existing note', async () => {
+    const created = await createNote('Delete me')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await deleteNote(created.data.id)
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.id).toBe(created.data.id)
+
+    // Verify note is gone
+    const fetched = await getNoteById(created.data.id)
+    expect(fetched).toBeUndefined()
+  })
+
+  test('returns error for non-existent note', async () => {
+    const fakeId = '00000000-0000-0000-0000-000000000000'
+    const result = await deleteNote(fakeId)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toBe('Note not found')
+    }
+  })
+
+  test('returns error for invalid (non-UUID) ID', async () => {
+    const result = await deleteNote('bad-id')
+    expect(result.success).toBe(false)
+  })
+
+  test('does not affect other notes', async () => {
+    const n1 = await createNote('Keep me')
+    const n2 = await createNote('Delete me')
+    if (!n1.success || !n2.success) throw new Error('Setup failed')
+
+    await deleteNote(n2.data.id)
+    const notes = await getNotes()
+    expect(notes).toHaveLength(1)
+    expect(notes[0].id).toBe(n1.data.id)
+  })
+})
+
+describe('getNotes', () => {
+  beforeEach(() => resetTestDb(sqlite))
+
+  test('returns all notes ordered by updatedAt desc', async () => {
+    await createNote('First note')
+    await new Promise((r) => setTimeout(r, 5))
+    await createNote('Second note')
+
+    const notes = await getNotes()
+    expect(notes).toHaveLength(2)
+    // Most recently updated first
+    expect(notes[0].title).toBe('Second note')
+    expect(notes[1].title).toBe('First note')
+  })
+
+  test('returns empty array when no notes exist', async () => {
+    const notes = await getNotes()
+    expect(notes).toHaveLength(0)
+  })
+})
+
+describe('getNoteById', () => {
+  beforeEach(() => resetTestDb(sqlite))
+
+  test('returns note by valid ID', async () => {
+    const created = await createNote('Find me')
+    if (!created.success) throw new Error('Setup failed')
+
+    const note = await getNoteById(created.data.id)
+    expect(note).toBeDefined()
+    expect(note?.title).toBe('Find me')
+  })
+
+  test('returns undefined for non-existent ID', async () => {
+    const fakeId = '00000000-0000-0000-0000-000000000000'
+    const note = await getNoteById(fakeId)
+    expect(note).toBeUndefined()
+  })
+
+  test('returns undefined for invalid (non-UUID) ID', async () => {
+    const note = await getNoteById('bad-id')
+    expect(note).toBeUndefined()
+  })
+})
+
+describe('saveNoteContent', () => {
+  beforeEach(() => resetTestDb(sqlite))
+
+  test('saves content and returns updated note', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await saveNoteContent(created.data.id, 'Updated content')
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.content).toBe('Updated content')
+  })
+
+  test('extracts tags from content automatically', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await saveNoteContent(created.data.id, 'Working on #react and #typescript')
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(JSON.parse(result.data.tags as string)).toEqual(['react', 'typescript'])
+  })
+
+  test('deduplicates extracted tags', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await saveNoteContent(created.data.id, '#work and more #work stuff')
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(JSON.parse(result.data.tags as string)).toEqual(['work'])
+  })
+
+  test('handles content with no tags', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await saveNoteContent(created.data.id, 'No tags here')
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.tags).toBe('[]')
+  })
+
+  test('handles empty content', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await saveNoteContent(created.data.id, '')
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.content).toBe('')
+    expect(result.data.tags).toBe('[]')
+  })
+
+  test('handles tags with hyphens and underscores', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const result = await saveNoteContent(created.data.id, '#my-project #some_task')
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(JSON.parse(result.data.tags as string)).toEqual(['my-project', 'some_task'])
+  })
+
+  test('returns error for non-existent note', async () => {
+    const fakeId = '00000000-0000-0000-0000-000000000000'
+    const result = await saveNoteContent(fakeId, 'content')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toBe('Note not found')
+    }
+  })
+
+  test('returns error for invalid (non-UUID) ID', async () => {
+    const result = await saveNoteContent('bad-id', 'content')
+    expect(result.success).toBe(false)
+  })
+
+  test('updates updatedAt timestamp', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    const originalUpdatedAt = created.data.updatedAt
+    await new Promise((r) => setTimeout(r, 5))
+    const result = await saveNoteContent(created.data.id, 'new stuff')
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.updatedAt).toBeGreaterThanOrEqual(originalUpdatedAt)
+  })
+
+  test('content is persisted and retrievable', async () => {
+    const created = await createNote('Note')
+    if (!created.success) throw new Error('Setup failed')
+
+    await saveNoteContent(created.data.id, 'Persisted content #test')
+    const fetched = await getNoteById(created.data.id)
+    expect(fetched?.content).toBe('Persisted content #test')
+    expect(JSON.parse(fetched?.tags as string)).toEqual(['test'])
+  })
+})
+
+describe('extractTags (utility)', () => {
   test('extracts a single tag', () => {
     expect(extractTags('Hello #world')).toEqual(['world'])
   })
@@ -66,117 +360,11 @@ describe('extractTags', () => {
     expect(extractTags('')).toEqual([])
   })
 
-  test('ignores bare hash, handles ## prefix', () => {
-    // Bare '#' followed by space is not a valid tag
+  test('ignores bare hash', () => {
     expect(extractTags('# alone')).toEqual([])
-    // '##word' — regex matches '#word' starting from second #
-    expect(extractTags('##invalid')).toEqual(['invalid'])
-    // Bare '#' with no following alphanumeric is ignored
-    expect(extractTags('# #valid')).toEqual(['valid'])
-  })
-})
-
-// --- saveNoteContent ---
-
-describe('saveNoteContent', () => {
-  beforeEach(() => {
-    mockGet.mockReset()
-    mockAll.mockReset()
-    mockSet.mockReset()
-    mockReturning.mockReset()
-    mockSelect.mockReset()
-    mockUpdate.mockReset()
-    mockFrom.mockReset()
-    mockWhereSelect.mockReset()
-    ;(revalidatePath as ReturnType<typeof mock>).mockReset()
-
-    // Re-wire chaining after reset
-    mockSelect.mockReturnValue({ from: mockFrom })
-    mockFrom.mockReturnValue({ where: mockWhereSelect })
-    mockWhereSelect.mockReturnValue({ get: mockGet })
-    mockUpdate.mockReturnValue({ set: mockSet })
-    mockSet.mockReturnValue({ where: mock(() => ({ returning: mockReturning })) })
-    mockReturning.mockReturnValue({ all: mockAll })
   })
 
-  test('successfully updates content and returns updated note', async () => {
-    const updatedNote = { ...mockNote, content: 'new content', tags: '[]', updatedAt: Date.now() }
-    mockGet.mockReturnValue(mockNote)
-    mockAll.mockReturnValue([updatedNote])
-
-    const result = await saveNoteContent(VALID_UUID, 'new content')
-
-    expect(result.success).toBe(true)
-    if (result.success) {
-      expect(result.data.content).toBe('new content')
-    }
-  })
-
-  test('extracts and stores tags from content as JSON string', async () => {
-    const content = 'Hello #react and #typescript'
-    const updatedNote = {
-      ...mockNote,
-      content,
-      tags: JSON.stringify(['react', 'typescript']),
-      updatedAt: Date.now(),
-    }
-    mockGet.mockReturnValue(mockNote)
-    mockAll.mockReturnValue([updatedNote])
-
-    const result = await saveNoteContent(VALID_UUID, content)
-
-    expect(result.success).toBe(true)
-    // Verify that db.update was called (tags extraction happens internally)
-    expect(mockUpdate).toHaveBeenCalled()
-    if (result.success) {
-      expect(JSON.parse(result.data.tags as string)).toEqual(['react', 'typescript'])
-    }
-  })
-
-  test('returns error for non-existent note ID', async () => {
-    mockGet.mockReturnValue(undefined)
-
-    const result = await saveNoteContent(VALID_UUID, 'some content')
-
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error).toBe('Note not found')
-    }
-  })
-
-  test('returns error for invalid (non-UUID) ID', async () => {
-    const result = await saveNoteContent('not-a-uuid', 'some content')
-
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error).toBeDefined()
-    }
-  })
-
-  test('handles empty content string (tags become "[]")', async () => {
-    const updatedNote = { ...mockNote, content: '', tags: '[]', updatedAt: Date.now() }
-    mockGet.mockReturnValue(mockNote)
-    mockAll.mockReturnValue([updatedNote])
-
-    const result = await saveNoteContent(VALID_UUID, '')
-
-    expect(result.success).toBe(true)
-    if (result.success) {
-      expect(result.data.tags).toBe('[]')
-    }
-  })
-
-  test('updates updatedAt timestamp to current time', async () => {
-    const beforeTime = Date.now()
-    const updatedNote = { ...mockNote, content: 'test', tags: '[]', updatedAt: beforeTime }
-    mockGet.mockReturnValue(mockNote)
-    mockAll.mockReturnValue([updatedNote])
-
-    const result = await saveNoteContent(VALID_UUID, 'test')
-
-    expect(result.success).toBe(true)
-    if (result.success) {
-      expect(result.data.updatedAt).toBeGreaterThanOrEqual(beforeTime)
-    }
+  test('handles ## prefix', () => {
+    expect(extractTags('##heading')).toEqual(['heading'])
   })
 })
