@@ -3,7 +3,7 @@ FROM oven/bun:alpine AS deps
 WORKDIR /app
 
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production=false
+RUN bun install --frozen-lockfile
 
 # Stage 2: Build the application
 FROM oven/bun:alpine AS build
@@ -25,7 +25,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_PATH=data/db.sqlite
 
-RUN addgroup --system --gid 1001 nodejs && \
+RUN apk add --no-cache sqlite && \
+    addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy standalone build output
@@ -35,6 +36,10 @@ COPY --from=build /app/public ./public
 
 # Copy drizzle migrations for runtime migration
 COPY --from=build /app/drizzle ./drizzle
+
+# Copy entrypoint script
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
 
 # Create data directory for SQLite persistence
 RUN mkdir -p data && chown nextjs:nodejs data
@@ -46,4 +51,4 @@ EXPOSE 3000
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
-CMD ["bun", "server.js"]
+CMD ["./entrypoint.sh"]

@@ -9,3 +9,4 @@ db.sqlite
 Dockerfile
 docker-compose.yml
 .dockerignore
+e2e
