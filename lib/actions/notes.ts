@@ -40,11 +40,11 @@ type ActionResult<T> = { success: true; data: T } | { success: false; error: str
 
 // --- Helpers ---
 
-function extractTags(content: string): string[] {
+export function extractTags(content: string): string[] {
+  if (!content) return []
   const matches = content.match(/#([a-zA-Z0-9_-]+)/g)
   if (!matches) return []
-  const unique = [...new Set(matches.map((tag) => tag.slice(1)))]
-  return unique
+  return [...new Set(matches.map((tag) => tag.slice(1)))]
 }
 
 // --- Server Actions ---
@@ -202,6 +202,5 @@ export async function saveNoteContent(
     .all()
 
   revalidatePath('/notes')
-  revalidatePath(`/notes/${id}`)
   return { success: true, data: updated }
 }
