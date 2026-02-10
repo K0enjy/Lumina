@@ -175,10 +175,10 @@ function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           {/* Dialog */}
           <motion.div
             className="relative z-10 w-full max-w-xl overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--bg)] shadow-2xl"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.25 }}
             onKeyDown={handleKeyDown}
           >
             {/* Search Input */}
