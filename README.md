@@ -51,9 +51,17 @@
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) v1.2 or later
+- [Bun](https://bun.sh) v1.2 or later — JavaScript runtime and package manager
+- [Node.js](https://nodejs.org) 22 or later — required for Next.js compatibility
 
-### Install
+### Clone the Repository
+
+```bash
+git clone https://github.com/your-username/lumina.git
+cd lumina
+```
+
+### Install Dependencies
 
 ```bash
 bun install
@@ -61,24 +69,28 @@ bun install
 
 ### Database Setup
 
-Generate and run migrations:
+Lumina uses SQLite via Drizzle ORM. Generate the migration files from the schema, then apply them to create the database:
 
 ```bash
 bunx drizzle-kit generate
 bunx drizzle-kit migrate
 ```
 
-### Run
+This creates a local SQLite database file. No external database server is needed.
 
-Start the development server:
+### Start the Dev Server
 
 ```bash
 bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser. The development server supports hot reloading — changes to your code will reflect immediately.
 
 ## Docker Deployment
+
+Lumina includes a multi-stage Dockerfile built on `oven/bun:alpine` for a minimal production image.
+
+### Quick Start
 
 Build and start the container:
 
@@ -86,10 +98,31 @@ Build and start the container:
 docker compose up
 ```
 
-To run in detached mode:
+To run in detached mode (background):
 
 ```bash
 docker compose up -d
+```
+
+The app will be available at [http://localhost:3000](http://localhost:3000).
+
+### Data Persistence
+
+SQLite data is persisted via a Docker volume. The `docker-compose.yml` mounts a local `./data` directory to `/app/data` inside the container, so your tasks and notes survive container restarts.
+
+### Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `NODE_ENV` | `production` | Node environment |
+| `DATABASE_PATH` | `data/db.sqlite` | Path to the SQLite database file |
+
+These are pre-configured in `docker-compose.yml` and typically do not need to be changed.
+
+### Stopping the Container
+
+```bash
+docker compose down
 ```
 
 ## Commands
@@ -97,13 +130,12 @@ docker compose up -d
 | Command | Description |
 |---|---|
 | `bun install` | Install dependencies |
-| `bun run dev` | Start dev server with Turbopack |
+| `bun run dev` | Start dev server |
 | `bun run build` | Production build |
-| `bun run lint` | Run linter |
 | `bun test` | Run unit tests |
-| `bunx drizzle-kit generate` | Generate database migrations |
-| `bunx drizzle-kit migrate` | Run database migrations |
-| `docker compose up` | Start with Docker |
+| `bunx drizzle-kit generate` | Generate database migrations from schema |
+| `bunx drizzle-kit migrate` | Apply database migrations |
+| `docker compose up` | Build and start with Docker |
 
 ## Project Structure
 
