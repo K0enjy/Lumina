@@ -26,9 +26,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_PATH=data/db.sqlite
 
-RUN apk add --no-cache sqlite && \
-    addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+RUN apk add --no-cache sqlite
 
 # Copy standalone build output
 COPY --from=build /app/.next/standalone ./
@@ -43,9 +41,7 @@ COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
 # Create data directory for SQLite persistence
-RUN mkdir -p data && chown nextjs:nodejs data
-
-USER nextjs
+RUN mkdir -p data
 
 EXPOSE 3000
 
