@@ -5,6 +5,7 @@ import { notes } from '@/db/schema'
 import { revalidatePath } from 'next/cache'
 import { eq, desc } from 'drizzle-orm'
 import { z } from 'zod'
+import { extractTags } from '@/lib/utils'
 
 // --- Zod schemas ---
 
@@ -37,15 +38,6 @@ const saveNoteContentSchema = z.object({
 type Note = typeof notes.$inferSelect
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string }
-
-// --- Helpers ---
-
-export function extractTags(content: string): string[] {
-  if (!content) return []
-  const matches = content.match(/#([a-zA-Z0-9_-]+)/g)
-  if (!matches) return []
-  return [...new Set(matches.map((tag) => tag.slice(1)))]
-}
 
 // --- Server Actions ---
 
