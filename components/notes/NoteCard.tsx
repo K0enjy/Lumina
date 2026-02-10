@@ -31,9 +31,24 @@ function formatDate(timestamp: number): string {
   })
 }
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    .replace(/\[([^\]]*)\]\(.*?\)/g, '$1')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^[-*_]{3,}\s*$/gm, '')
+    .replace(/^>\s?/gm, '')
+    .replace(/[*_~]{1,3}([^*_~]+)[*_~]{1,3}/g, '$1')
+    .replace(/[#*_~`>\[\]()]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 function getPreview(content: string | null): string {
   if (!content) return ''
-  const stripped = content.replace(/#[a-zA-Z0-9_-]+/g, '').replace(/[#*_~`>\[\]()-]/g, '').trim()
+  const stripped = stripMarkdown(content)
   return stripped.length > 100 ? stripped.slice(0, 100) + '...' : stripped
 }
 
