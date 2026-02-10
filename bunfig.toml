@@ -1,0 +1,2 @@
+[test]
+preload = ["./__tests__/helpers/happy-dom-setup.ts"]
