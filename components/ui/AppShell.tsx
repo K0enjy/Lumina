@@ -1,16 +1,12 @@
 'use client'
 
 import { type ReactNode } from 'react'
-import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'motion/react'
 import { SidebarProvider, useSidebar } from '@/components/ui/SidebarProvider'
 import { Sidebar } from '@/components/ui/Sidebar'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useZenMode } from '@/components/zen/ZenModeContext'
-
-const AudioPlayer = dynamic(() => import('@/components/zen/AudioPlayer'), {
-  ssr: false,
-})
+import { ZenMode } from '@/components/zen/ZenMode'
 
 function Header() {
   const { toggle } = useSidebar()
@@ -44,38 +40,6 @@ function Header() {
   )
 }
 
-function ZenExitButton() {
-  const { exitZen } = useZenMode()
-
-  return (
-    <motion.button
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
-      onClick={exitZen}
-      className="fixed top-4 right-4 z-50 flex items-center gap-1.5 rounded-lg bg-[var(--surface)]/80 backdrop-blur-sm px-3 py-1.5 text-sm text-[var(--text-secondary)] shadow-lg hover:text-[var(--text)] hover:bg-[var(--surface)] transition-colors"
-      aria-label="Exit Zen Mode"
-    >
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M18 6L6 18" />
-        <path d="M6 6l12 12" />
-      </svg>
-      Exit Zen
-    </motion.button>
-  )
-}
-
 function AppShellContent({ children }: { children: ReactNode }) {
   const { isZen } = useZenMode()
 
@@ -88,7 +52,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.3 }}
           >
             <Sidebar />
           </motion.div>
@@ -103,7 +67,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.3 }}
             >
               <Header />
             </motion.div>
@@ -111,20 +75,6 @@ function AppShellContent({ children }: { children: ReactNode }) {
         </AnimatePresence>
 
         <main className="flex-1 overflow-y-auto p-6">
-          {/* Zen mode backdrop overlay */}
-          <AnimatePresence>
-            {isZen && (
-              <motion.div
-                key="zen-backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="fixed inset-0 z-10 bg-[var(--bg)]/80 backdrop-blur-sm"
-              />
-            )}
-          </AnimatePresence>
-
           {/* Content wrapper — centered with max-width in zen mode */}
           <div className={isZen ? 'relative z-20 mx-auto max-w-[700px]' : ''}>
             {children}
@@ -132,11 +82,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Floating exit button and audio player in zen mode */}
-      <AnimatePresence>
-        {isZen && <ZenExitButton key="zen-exit" />}
-        {isZen && <AudioPlayer key="zen-audio" />}
-      </AnimatePresence>
+      <ZenMode />
     </div>
   )
 }
