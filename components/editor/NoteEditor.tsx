@@ -2,7 +2,7 @@
 
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { Markdown } from 'tiptap-markdown'
+import { Markdown } from '@tiptap/markdown'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { saveNoteContent, updateNote } from '@/lib/actions/notes'
 import { extractTags } from '@/lib/utils'
