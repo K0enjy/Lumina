@@ -2,12 +2,21 @@
 
 import { type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import dynamic from 'next/dynamic'
 import { SidebarProvider, useSidebar } from '@/components/ui/SidebarProvider'
 import { Sidebar } from '@/components/ui/Sidebar'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useZenMode } from '@/components/zen/ZenModeContext'
-import { ZenMode } from '@/components/zen/ZenMode'
-import { CommandPalette } from '@/components/search/CommandPalette'
+
+const ZenMode = dynamic(
+  () => import('@/components/zen/ZenMode').then((mod) => mod.ZenMode),
+  { ssr: false }
+)
+
+const CommandPalette = dynamic(
+  () => import('@/components/search/CommandPalette').then((mod) => mod.CommandPalette),
+  { ssr: false }
+)
 
 function Header() {
   const { toggle } = useSidebar()

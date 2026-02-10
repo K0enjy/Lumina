@@ -1,5 +1,5 @@
 import { getNoteById } from '@/lib/actions/notes'
-import { NoteEditor } from '@/components/editor/NoteEditor'
+import { LazyNoteEditor } from '@/components/editor/LazyNoteEditor'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -26,7 +26,7 @@ export default async function NoteEditorPage({
 
   return (
     <main className="flex flex-col h-full p-6 max-w-4xl mx-auto w-full">
-      <NoteEditor
+      <LazyNoteEditor
         id={note.id}
         initialTitle={note.title}
         initialContent={note.content ?? ''}
