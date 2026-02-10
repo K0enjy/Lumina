@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Card } from '@/components/ui/Card'
+import { AnimatedCard } from '@/components/ui/AnimatedCard'
 import { Badge } from '@/components/ui/Badge'
 
 type NoteCardProps = {
@@ -55,7 +55,7 @@ function getPreview(content: string | null): string {
 function NoteCard({ id, title, content, tags, updatedAt }: NoteCardProps) {
   return (
     <Link href={`/notes/${id}`} className="block">
-      <Card className="h-full cursor-pointer">
+      <AnimatedCard className="h-full cursor-pointer">
         <div className="flex flex-col gap-3">
           <h3 className="text-base font-semibold text-[var(--text)] line-clamp-1">
             {title}
@@ -86,7 +86,7 @@ function NoteCard({ id, title, content, tags, updatedAt }: NoteCardProps) {
             {formatDate(updatedAt)}
           </p>
         </div>
-      </Card>
+      </AnimatedCard>
     </Link>
   )
 }
