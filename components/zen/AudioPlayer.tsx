@@ -49,8 +49,11 @@ export default function AudioPlayer() {
           audioRef.current?.pause()
           setIsPlaying(false)
         } else {
-          audioRef.current?.play()
-          setIsPlaying(true)
+          audioRef.current?.play().then(() => {
+            setIsPlaying(true)
+          }).catch(() => {
+            setIsPlaying(false)
+          })
         }
         return
       }
@@ -84,10 +87,11 @@ export default function AudioPlayer() {
       audioRef.current.pause()
       setIsPlaying(false)
     } else {
-      audioRef.current.play().catch(() => {
+      audioRef.current.play().then(() => {
+        setIsPlaying(true)
+      }).catch(() => {
         setIsPlaying(false)
       })
-      setIsPlaying(true)
     }
   }, [isPlaying, activeSound])
 
