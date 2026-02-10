@@ -147,7 +147,7 @@ export function TaskList({ tasks: serverTasks }: TaskListProps) {
   }, [setOptimisticTasks])
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" data-testid="task-list">
       <AddTask onAdd={handleAdd} />
 
       {sortedTasks.length === 0 ? (

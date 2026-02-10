@@ -21,12 +21,14 @@ export function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
+      data-testid="task-item"
       className="group flex items-center gap-3 bg-[var(--surface)] rounded-xl px-4 py-3 border border-[var(--text-secondary)]/10"
     >
       {/* Checkbox */}
       <button
         type="button"
         onClick={() => onToggle(task.id)}
+        data-testid="task-checkbox"
         className={cn(
           'flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200',
           isDone
@@ -68,7 +70,7 @@ export function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
       </span>
 
       {/* Priority dot */}
-      <Badge variant="dot" priority={task.priority as 1 | 2 | 3} />
+      <Badge variant="dot" priority={task.priority as 1 | 2 | 3} data-testid="task-priority-dot" />
 
       {/* Delete button */}
       <Button
