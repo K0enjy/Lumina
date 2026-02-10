@@ -1,11 +1,16 @@
 'use client'
 
 import { type ReactNode } from 'react'
+import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'motion/react'
 import { SidebarProvider, useSidebar } from '@/components/ui/SidebarProvider'
 import { Sidebar } from '@/components/ui/Sidebar'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useZenMode } from '@/components/zen/ZenModeContext'
+
+const AudioPlayer = dynamic(() => import('@/components/zen/AudioPlayer'), {
+  ssr: false,
+})
 
 function Header() {
   const { toggle } = useSidebar()
@@ -127,9 +132,10 @@ function AppShellContent({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Floating exit button in zen mode */}
+      {/* Floating exit button and audio player in zen mode */}
       <AnimatePresence>
         {isZen && <ZenExitButton key="zen-exit" />}
+        {isZen && <AudioPlayer key="zen-audio" />}
       </AnimatePresence>
     </div>
   )
