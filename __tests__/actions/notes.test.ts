@@ -23,7 +23,8 @@ mock.module('@/lib/db', () => ({
 }))
 
 // Import after mocks are set up
-const { extractTags, saveNoteContent } = await import('@/lib/actions/notes')
+const { extractTags } = await import('@/lib/utils')
+const { saveNoteContent } = await import('@/lib/actions/notes')
 const { revalidatePath } = await import('next/cache')
 
 // --- Test Data ---
