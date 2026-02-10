@@ -25,7 +25,7 @@ async function NotesLoader() {
 
 export default function NotesPage() {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8">
       <header className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[var(--text)]">Notes</h1>
@@ -39,6 +39,6 @@ export default function NotesPage() {
       <Suspense fallback={<NotesGridSkeleton />}>
         <NotesLoader />
       </Suspense>
-    </main>
+    </div>
   )
 }

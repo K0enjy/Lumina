@@ -195,10 +195,14 @@ function CommandPalette() {
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={close}
+            aria-hidden="true"
           />
 
           {/* Dialog */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Search tasks and notes"
             className="relative z-10 w-full max-w-xl overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--bg)] shadow-2xl"
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -229,6 +233,7 @@ function CommandPalette() {
                 value={query}
                 onChange={(e) => handleInputChange(e.target.value)}
                 placeholder="Search tasks and notes..."
+                aria-label="Search tasks and notes"
                 className="flex-1 bg-transparent py-3.5 pl-3 pr-2 text-[var(--text)] placeholder:text-[var(--text-secondary)]/60 focus:outline-none"
               />
               <kbd className="hidden shrink-0 select-none items-center gap-0.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 text-xs text-[var(--text-secondary)] sm:inline-flex">

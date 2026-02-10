@@ -19,7 +19,7 @@ const CommandPalette = dynamic(
 )
 
 function Header() {
-  const { toggle } = useSidebar()
+  const { isOpen, toggle } = useSidebar()
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--border)] px-4 md:justify-end">
@@ -28,7 +28,8 @@ function Header() {
         type="button"
         onClick={toggle}
         className="inline-flex items-center justify-center rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text)] md:hidden"
-        aria-label="Open sidebar"
+        aria-label="Toggle sidebar"
+        aria-expanded={isOpen}
       >
         <svg
           width="24"
@@ -84,7 +85,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
           )}
         </AnimatePresence>
 
-        <main className="flex-1 overflow-y-auto p-6">
+        <main id="main-content" className="flex-1 overflow-y-auto p-6">
           {/* Content wrapper — centered with max-width in zen mode */}
           <div className={isZen ? 'relative z-20 mx-auto max-w-[700px]' : ''}>
             {children}
