@@ -14,6 +14,12 @@ const priorityColors = {
   3: 'bg-red-400',
 } as const
 
+const priorityLabels = {
+  1: 'Low priority',
+  2: 'Medium priority',
+  3: 'High priority',
+} as const
+
 function Badge({ className, ...props }: BadgeProps) {
   if (props.variant === 'dot') {
     return (
@@ -23,6 +29,8 @@ function Badge({ className, ...props }: BadgeProps) {
           priorityColors[props.priority],
           className
         )}
+        role="img"
+        aria-label={priorityLabels[props.priority]}
       />
     )
   }

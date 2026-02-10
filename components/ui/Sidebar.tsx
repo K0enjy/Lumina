@@ -75,7 +75,7 @@ function Sidebar({ className }: SidebarProps) {
   }
 
   const navContent = (
-    <nav className="flex flex-col gap-1 px-3">
+    <nav aria-label="Main navigation" className="flex flex-col gap-1 px-3">
       {navItems.map((item) => {
         const active = isActive(item.href)
         return (
@@ -121,6 +121,7 @@ function Sidebar({ className }: SidebarProps) {
 
       {/* Mobile sidebar drawer */}
       <aside
+        aria-label="Sidebar navigation"
         className={cn(
           'fixed inset-y-0 left-0 z-40 w-60 bg-[var(--surface)] border-r border-[var(--border)] transition-transform duration-300 md:hidden',
           isOpen ? 'translate-x-0' : '-translate-x-full',
@@ -132,6 +133,7 @@ function Sidebar({ className }: SidebarProps) {
 
       {/* Desktop sidebar — always visible */}
       <aside
+        aria-label="Sidebar navigation"
         className={cn(
           'hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:w-60 md:flex-col bg-[var(--surface)] border-r border-[var(--border)]',
           className

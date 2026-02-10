@@ -38,7 +38,7 @@ export default function TodayPage() {
   })
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-2xl px-4 py-8">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-[var(--text)]">Today</h1>
         <p className="mt-1 text-[var(--text-secondary)]">{formatted}</p>
@@ -47,6 +47,6 @@ export default function TodayPage() {
       <Suspense fallback={<TaskListSkeleton />}>
         <TaskListLoader />
       </Suspense>
-    </main>
+    </div>
   )
 }

@@ -168,6 +168,7 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            aria-hidden="true"
           >
             <path d="M19 12H5" />
             <path d="m12 19-7-7 7-7" />
@@ -206,6 +207,7 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
             </svg>
           </button>
           <span
+            aria-live="polite"
             className={cn(
               'text-xs transition-opacity duration-200',
               saveStatus === 'idle' ? 'opacity-0' : 'opacity-100',
@@ -223,6 +225,7 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
         value={title}
         onChange={(e) => handleTitleChange(e.target.value)}
         placeholder="Untitled"
+        aria-label="Note title"
         className="w-full text-3xl font-bold text-text bg-transparent border-none outline-none placeholder:text-text-secondary/50 mb-4"
       />
 
