@@ -49,9 +49,9 @@ function AppShellContent({ children }: { children: ReactNode }) {
         {!isZen && (
           <motion.div
             key="sidebar"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -240 }}
             transition={{ duration: 0.3 }}
           >
             <Sidebar />
@@ -59,14 +59,14 @@ function AppShellContent({ children }: { children: ReactNode }) {
         )}
       </AnimatePresence>
 
-      <div className={`flex flex-1 flex-col ${isZen ? '' : 'md:ml-60'}`}>
+      <div className={`flex flex-1 flex-col transition-[margin] duration-300 ${isZen ? '' : 'md:ml-60'}`}>
         <AnimatePresence>
           {!isZen && (
             <motion.div
               key="header"
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -56 }}
               transition={{ duration: 0.3 }}
             >
               <Header />
