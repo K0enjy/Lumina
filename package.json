@@ -7,7 +7,7 @@
     "build": "bun --bun next build",
     "start": "next start",
     "lint": "next lint",
-    "test:e2e": "playwright test"
+    "test:e2e": "bunx playwright test"
   },
   "dependencies": {
     "@tiptap/core": "^3.19.0",
