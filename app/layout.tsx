@@ -20,6 +20,15 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'Lumina',
   },
+  icons: {
+    icon: [
+      { url: '/icons/icon-192x192.svg', sizes: '192x192', type: 'image/svg+xml' },
+      { url: '/icons/icon-512x512.svg', sizes: '512x512', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/icons/apple-touch-icon.svg', sizes: '180x180', type: 'image/svg+xml' },
+    ],
+  },
 }
 
 export const viewport: Viewport = {

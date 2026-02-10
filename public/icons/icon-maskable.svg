@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Full background fill for maskable safe zone -->
+  <rect width="512" height="512" fill="#3B82F6"/>
+  <!-- Logo scaled down to fit within 80% safe zone (centered in ~410px area) -->
+  <path d="M179 168 L179 344 L307 344" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="307" cy="168" r="26" fill="#FBBF24" opacity="0.9"/>
+  <circle cx="307" cy="168" r="44" fill="#FBBF24" opacity="0.3"/>
+</svg>
