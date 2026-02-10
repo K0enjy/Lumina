@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import { getTasksByDate, archiveCompletedTasks } from '@/lib/actions/tasks'
 import { TaskList } from '@/components/tasks/TaskList'
 
+export const dynamic = 'force-dynamic'
+
 function TaskListSkeleton() {
   return (
     <div className="flex flex-col gap-3">

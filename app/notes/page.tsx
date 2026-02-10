@@ -3,6 +3,8 @@ import { getNotes } from '@/lib/actions/notes'
 import { NotesPageClient } from '@/components/notes/NotesPageClient'
 import { NewNoteButton } from '@/components/notes/NewNoteButton'
 
+export const dynamic = 'force-dynamic'
+
 function NotesGridSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
