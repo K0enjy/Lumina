@@ -30,6 +30,20 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const titleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const debouncedSaveContent = useCallback(
+    (content: string) => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+      setSaveStatus('saving')
+      saveTimeoutRef.current = setTimeout(async () => {
+        await saveNoteContent(id, content)
+        setSaveStatus('saved')
+      }, 1000)
+    },
+    [id]
+  )
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -49,32 +63,19 @@ export function NoteEditor({ id, initialTitle, initialContent, initialTags }: No
       }),
     ],
     content: initialContent,
+    contentType: 'markdown',
     editorProps: {
       attributes: {
         class: 'tiptap-editor prose prose-sm max-w-none focus:outline-none min-h-[300px]',
       },
     },
     onUpdate: ({ editor }) => {
-      const markdown = editor.storage.markdown.getMarkdown() as string
+      const markdown = editor.getMarkdown()
       const extracted = extractTags(markdown)
       setTags(extracted)
       debouncedSaveContent(markdown)
     },
   })
-
-  const debouncedSaveContent = useCallback(
-    (content: string) => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-      }
-      setSaveStatus('saving')
-      saveTimeoutRef.current = setTimeout(async () => {
-        await saveNoteContent(id, content)
-        setSaveStatus('saved')
-      }, 1000)
-    },
-    [id]
-  )
 
   const handleTitleChange = useCallback(
     (newTitle: string) => {
