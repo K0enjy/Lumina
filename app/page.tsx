@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { getTasksByDate } from '@/lib/actions/tasks'
+import { getTasksByDate, archiveCompletedTasks } from '@/lib/actions/tasks'
 import { TaskList } from '@/components/tasks/TaskList'
 
 function TaskListSkeleton() {
@@ -21,6 +21,7 @@ function TaskListSkeleton() {
 }
 
 async function TaskListLoader() {
+  await archiveCompletedTasks()
   const today = new Date().toISOString().split('T')[0]
   const tasks = await getTasksByDate(today)
   return <TaskList tasks={tasks} />
