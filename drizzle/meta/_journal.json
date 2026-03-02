@@ -8,6 +8,13 @@
       "when": 1770681689400,
       "tag": "0000_rich_rhodey",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1772451035406,
+      "tag": "0001_slow_magik",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { tasks, notes } from '@/db/schema'
+import { tasks, notes, events } from '@/db/schema'
 import { like, or, desc } from 'drizzle-orm'
 import { z } from 'zod'
 
@@ -32,7 +32,17 @@ type NoteSearchResult = {
   tags: string[]
 }
 
-export type SearchResult = TaskSearchResult | NoteSearchResult
+type EventSearchResult = {
+  type: 'event'
+  id: string
+  displayTitle: string
+  previewSnippet: string
+  updatedAt: number
+  startAt: string
+  endAt: string
+}
+
+export type SearchResult = TaskSearchResult | NoteSearchResult | EventSearchResult
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string }
 
@@ -93,6 +103,20 @@ export async function searchAll(
     .limit(10)
     .all()
 
+  const eventResults = db
+    .select()
+    .from(events)
+    .where(
+      or(
+        like(events.title, pattern),
+        like(events.description, pattern),
+        like(events.location, pattern)
+      )
+    )
+    .orderBy(desc(events.updatedAt))
+    .limit(10)
+    .all()
+
   const results: SearchResult[] = [
     ...taskResults.map((task): TaskSearchResult => ({
       type: 'task',
@@ -110,6 +134,15 @@ export async function searchAll(
       previewSnippet: truncate(note.content || '', 120),
       updatedAt: note.updatedAt,
       tags: parseTags(note.tags),
+    })),
+    ...eventResults.map((event): EventSearchResult => ({
+      type: 'event',
+      id: event.id,
+      displayTitle: truncate(event.title, 120),
+      previewSnippet: truncate(event.description || event.location || '', 120),
+      updatedAt: event.updatedAt,
+      startAt: event.startAt,
+      endAt: event.endAt,
     })),
   ]
 
@@ -131,6 +164,13 @@ async function getRecentItems(): Promise<ActionResult<SearchResult[]>> {
     .limit(5)
     .all()
 
+  const recentEvents = db
+    .select()
+    .from(events)
+    .orderBy(desc(events.updatedAt))
+    .limit(5)
+    .all()
+
   const results: SearchResult[] = [
     ...recentTasks.map((task): TaskSearchResult => ({
       type: 'task',
@@ -148,6 +188,15 @@ async function getRecentItems(): Promise<ActionResult<SearchResult[]>> {
       previewSnippet: truncate(note.content || '', 120),
       updatedAt: note.updatedAt,
       tags: parseTags(note.tags),
+    })),
+    ...recentEvents.map((event): EventSearchResult => ({
+      type: 'event',
+      id: event.id,
+      displayTitle: truncate(event.title, 120),
+      previewSnippet: truncate(event.description || event.location || '', 120),
+      updatedAt: event.updatedAt,
+      startAt: event.startAt,
+      endAt: event.endAt,
     })),
   ]
 

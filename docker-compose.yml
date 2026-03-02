@@ -1,5 +1,6 @@
 services:
   lumina:
+    image: koenjy/lumina:latest
     build: .
     ports:
       - "3000:3000"

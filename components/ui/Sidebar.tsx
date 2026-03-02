@@ -39,6 +39,30 @@ const navItems = [
     ),
   },
   {
+    label: 'Calendar',
+    href: '/calendar',
+    icon: (
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M3 8H17" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M7 2V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M13 2V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="7" cy="11" r="1" fill="currentColor" />
+        <circle cx="10" cy="11" r="1" fill="currentColor" />
+        <circle cx="13" cy="11" r="1" fill="currentColor" />
+        <circle cx="7" cy="14" r="1" fill="currentColor" />
+        <circle cx="10" cy="14" r="1" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
     label: 'Notes',
     href: '/notes',
     icon: (
