@@ -11,11 +11,23 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light')
+type ThemeProviderProps = {
+  children: ReactNode
+  initialTheme?: Theme
+  initialAccentColor?: string
+}
+
+function ThemeProvider({ children, initialTheme, initialAccentColor }: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(initialTheme ?? 'light')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    if (initialTheme) {
+      setTheme(initialTheme)
+      setMounted(true)
+      return
+    }
+
     const stored = localStorage.getItem('lumina-theme') as Theme | null
     if (stored === 'light' || stored === 'dark') {
       setTheme(stored)
@@ -23,7 +35,7 @@ function ThemeProvider({ children }: { children: ReactNode }) {
       setTheme('dark')
     }
     setMounted(true)
-  }, [])
+  }, [initialTheme])
 
   useEffect(() => {
     if (!mounted) return
@@ -35,6 +47,13 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     }
     localStorage.setItem('lumina-theme', theme)
   }, [theme, mounted])
+
+  useEffect(() => {
+    if (initialAccentColor) {
+      document.documentElement.style.setProperty('--accent', initialAccentColor)
+      document.documentElement.style.setProperty('--ring', initialAccentColor)
+    }
+  }, [initialAccentColor])
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))

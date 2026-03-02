@@ -144,6 +144,15 @@ export async function getNotes(): Promise<Note[]> {
     .all()
 }
 
+export async function getRecentNotes(limit = 4): Promise<Note[]> {
+  return db
+    .select()
+    .from(notes)
+    .orderBy(desc(notes.updatedAt))
+    .limit(limit)
+    .all()
+}
+
 export async function getNoteById(
   id: string
 ): Promise<Note | undefined> {

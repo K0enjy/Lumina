@@ -19,6 +19,12 @@ export const notes = sqliteTable('notes', {
   updatedAt: integer('updated_at', { mode: 'number' }).notNull(),
 })
 
+export const settings = sqliteTable('settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: integer('updated_at', { mode: 'number' }).notNull(),
+})
+
 export const caldavAccounts = sqliteTable('caldav_accounts', {
   id: text('id').primaryKey(),
   serverUrl: text('server_url').notNull(),
@@ -33,12 +39,13 @@ export const caldavAccounts = sqliteTable('caldav_accounts', {
 
 export const calendars = sqliteTable('calendars', {
   id: text('id').primaryKey(),
-  accountId: text('account_id').notNull().references(() => caldavAccounts.id, { onDelete: 'cascade' }),
+  accountId: text('account_id').references(() => caldavAccounts.id, { onDelete: 'cascade' }),
   url: text('url').notNull(),
   displayName: text('display_name').notNull(),
   color: text('color').default('#3b82f6'),
   ctag: text('ctag'),
   syncToken: text('sync_token'),
+  isLocal: integer('is_local', { mode: 'boolean' }).notNull().default(false),
   enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
   createdAt: integer('created_at', { mode: 'number' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'number' }).notNull(),

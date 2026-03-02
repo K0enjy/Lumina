@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { getEventsByDateRange, getCalendars, triggerSync, getCaldavAccounts } from '@/lib/actions/calendar'
+import { ensureLocalCalendar } from '@/lib/local-calendar'
 import { CalendarPageClient } from '@/components/calendar'
 
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,8 @@ function CalendarSkeleton() {
 }
 
 async function CalendarLoader() {
+  ensureLocalCalendar()
+
   const now = new Date()
   const year = now.getFullYear()
   const month = now.getMonth()

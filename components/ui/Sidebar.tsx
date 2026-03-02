@@ -15,26 +15,29 @@ const navItems = [
     label: 'Today',
     href: '/',
     icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <rect
-          x="3"
-          y="4"
-          width="14"
-          height="13"
-          rx="2"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        />
-        <path d="M3 8H17" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M7 2V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M13 2V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M10 2V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M10 16V18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M2 10H4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M16 10H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M4.93 4.93L6.34 6.34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M13.66 13.66L15.07 15.07" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M4.93 15.07L6.34 13.66" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M13.66 6.34L15.07 4.93" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Tasks',
+    href: '/tasks',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M7 7H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M7 10H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M7 13H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M12 12L13 13L15.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -42,14 +45,7 @@ const navItems = [
     label: 'Calendar',
     href: '/calendar',
     icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.5" />
         <path d="M3 8H17" stroke="currentColor" strokeWidth="1.5" />
         <path d="M7 2V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -66,14 +62,7 @@ const navItems = [
     label: 'Notes',
     href: '/notes',
     icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path
           d="M6 3H14C15.1046 3 16 3.89543 16 5V15C16 16.1046 15.1046 17 14 17H6C4.89543 17 4 16.1046 4 15V5C4 3.89543 4.89543 3 6 3Z"
           stroke="currentColor"
@@ -87,6 +76,22 @@ const navItems = [
   },
 ] as const
 
+const settingsItem = {
+  label: 'Settings',
+  href: '/settings',
+  icon: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M10 2.5V4.5M10 15.5V17.5M17.5 10H15.5M4.5 10H2.5M15.3 4.7L13.9 6.1M6.1 13.9L4.7 15.3M15.3 15.3L13.9 13.9M6.1 6.1L4.7 4.7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  ),
+}
+
 function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
   const { isOpen, setIsOpen } = useSidebar()
@@ -98,28 +103,45 @@ function Sidebar({ className }: SidebarProps) {
     return pathname.startsWith(href)
   }
 
+  const linkClass = (active: boolean) =>
+    cn(
+      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+      active
+        ? 'border-l-2 border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+        : 'border-l-2 border-transparent text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text)]'
+    )
+
   const navContent = (
-    <nav aria-label="Main navigation" className="flex flex-col gap-1 px-3">
-      {navItems.map((item) => {
-        const active = isActive(item.href)
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={closeMobile}
-            aria-current={active ? 'page' : undefined}
-            className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-              active
-                ? 'border-l-2 border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
-                : 'border-l-2 border-transparent text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text)]'
-            )}
-          >
-            {item.icon}
-            {item.label}
-          </Link>
-        )
-      })}
+    <nav aria-label="Main navigation" className="flex flex-col flex-1 px-3">
+      <div className="flex flex-col gap-1">
+        {navItems.map((item) => {
+          const active = isActive(item.href)
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={closeMobile}
+              aria-current={active ? 'page' : undefined}
+              className={linkClass(active)}
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          )
+        })}
+      </div>
+
+      <div className="mt-auto pt-4 border-t border-[var(--border)]">
+        <Link
+          href={settingsItem.href}
+          onClick={closeMobile}
+          aria-current={isActive(settingsItem.href) ? 'page' : undefined}
+          className={linkClass(isActive(settingsItem.href))}
+        >
+          {settingsItem.icon}
+          {settingsItem.label}
+        </Link>
+      </div>
     </nav>
   )
 

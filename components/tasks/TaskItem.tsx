@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useRef } from 'react'
 import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
@@ -11,10 +14,28 @@ type TaskItemProps = {
   task: Task
   onToggle: (id: string) => void
   onDelete: (id: string) => void
+  onEditText?: (id: string, text: string) => void
+  showDate?: boolean
 }
 
-export function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
+export function TaskItem({ task, onToggle, onDelete, onEditText, showDate }: TaskItemProps) {
   const isDone = task.status === 'done'
+  const [isEditing, setIsEditing] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleDoubleClick = () => {
+    if (!onEditText || isDone) return
+    setIsEditing(true)
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  const handleEditSubmit = () => {
+    const newText = inputRef.current?.value.trim()
+    if (newText && newText !== task.text && onEditText) {
+      onEditText(task.id, newText)
+    }
+    setIsEditing(false)
+  }
 
   return (
     <motion.div
@@ -58,16 +79,38 @@ export function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
       </button>
 
       {/* Task text */}
-      <span
-        className={cn(
-          'flex-1 text-sm transition-all duration-200',
-          isDone
-            ? 'line-through text-[var(--text-secondary)]'
-            : 'text-[var(--text)]'
-        )}
-      >
-        {task.text}
-      </span>
+      {isEditing ? (
+        <input
+          ref={inputRef}
+          defaultValue={task.text}
+          onBlur={handleEditSubmit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleEditSubmit()
+            if (e.key === 'Escape') setIsEditing(false)
+          }}
+          className="flex-1 text-sm bg-transparent border-b border-[var(--accent)] text-[var(--text)] outline-none"
+        />
+      ) : (
+        <span
+          onDoubleClick={handleDoubleClick}
+          className={cn(
+            'flex-1 text-sm transition-all duration-200',
+            isDone
+              ? 'line-through text-[var(--text-secondary)]'
+              : 'text-[var(--text)]',
+            onEditText && !isDone && 'cursor-text'
+          )}
+        >
+          {task.text}
+        </span>
+      )}
+
+      {/* Date badge */}
+      {showDate && (
+        <span className="text-xs text-[var(--text-secondary)] whitespace-nowrap">
+          {task.date}
+        </span>
+      )}
 
       {/* Priority dot */}
       <Badge variant="dot" priority={task.priority as 1 | 2 | 3} data-testid="task-priority-dot" />

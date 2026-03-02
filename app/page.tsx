@@ -1,32 +1,40 @@
 import { Suspense } from 'react'
-import { getTasksByDate, archiveCompletedTasks } from '@/lib/actions/tasks'
-import { TaskList } from '@/components/tasks/TaskList'
+import { getTasksByDate } from '@/lib/actions/tasks'
+import { getEventsByDateRange } from '@/lib/actions/calendar'
+import { getRecentNotes } from '@/lib/actions/notes'
+import { ensureLocalCalendar } from '@/lib/local-calendar'
+import { DashboardClient } from '@/components/dashboard/DashboardClient'
 
 export const dynamic = 'force-dynamic'
 
-function TaskListSkeleton() {
+function DashboardSkeleton() {
   return (
-    <div className="flex flex-col gap-3">
-      {/* AddTask skeleton */}
-      <div className="h-12 rounded-[20px] bg-[var(--surface)] animate-pulse" />
-      {/* Task item skeletons */}
-      <div className="flex flex-col gap-2">
-        {[1, 2, 3].map(i => (
-          <div
-            key={i}
-            className="h-14 rounded-[20px] bg-[var(--surface)] animate-pulse"
-          />
-        ))}
-      </div>
+    <div className="grid gap-6 md:grid-cols-2">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="h-48 rounded-2xl bg-[var(--surface)] animate-pulse" />
+      ))}
     </div>
   )
 }
 
-async function TaskListLoader() {
-  await archiveCompletedTasks()
+async function DashboardLoader() {
   const today = new Date().toISOString().split('T')[0]
-  const tasks = await getTasksByDate(today)
-  return <TaskList tasks={tasks} />
+
+  ensureLocalCalendar()
+
+  const [tasks, { events }, recentNotes] = await Promise.all([
+    getTasksByDate(today),
+    getEventsByDateRange(today, today),
+    getRecentNotes(4),
+  ])
+
+  return (
+    <DashboardClient
+      tasks={tasks}
+      events={events}
+      recentNotes={recentNotes}
+    />
+  )
 }
 
 export default function TodayPage() {
@@ -38,14 +46,14 @@ export default function TodayPage() {
   })
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-8">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-[var(--text)]">Today</h1>
         <p className="mt-1 text-[var(--text-secondary)]">{formatted}</p>
       </header>
 
-      <Suspense fallback={<TaskListSkeleton />}>
-        <TaskListLoader />
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardLoader />
       </Suspense>
     </div>
   )

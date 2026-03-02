@@ -5,6 +5,7 @@ import { ZenModeProvider } from '@/components/zen/ZenModeContext'
 import { AppShell } from '@/components/ui/AppShell'
 import { ServiceWorkerRegistrar } from '@/components/ui/ServiceWorkerRegistrar'
 import { OfflineIndicator } from '@/components/ui/OfflineIndicator'
+import { getThemeSettings } from '@/lib/actions/settings'
 import './globals.css'
 
 const inter = Inter({
@@ -36,11 +37,18 @@ export const viewport: Viewport = {
   themeColor: '#3B82F6',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  let themeSettings: { theme: 'light' | 'dark'; accentColor: string } = { theme: 'light', accentColor: '#3B82F6' }
+  try {
+    themeSettings = await getThemeSettings()
+  } catch {
+    // DB may not be initialized yet (first run before migrations)
+  }
+
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body>
@@ -52,7 +60,7 @@ export default function RootLayout({
         </a>
         <ServiceWorkerRegistrar />
         <OfflineIndicator />
-        <ThemeProvider>
+        <ThemeProvider initialTheme={themeSettings.theme} initialAccentColor={themeSettings.accentColor}>
           <ZenModeProvider>
             <AppShell>{children}</AppShell>
           </ZenModeProvider>

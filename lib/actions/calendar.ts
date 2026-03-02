@@ -225,7 +225,9 @@ export async function getCalendars(): Promise<CalendarWithAccount[]> {
 
   return cals.map(cal => ({
     ...cal,
-    accountDisplayName: accountMap.get(cal.accountId)?.displayName ?? 'Unknown',
+    accountDisplayName: cal.accountId
+      ? (accountMap.get(cal.accountId)?.displayName ?? 'Unknown')
+      : 'Local',
   }))
 }
 
@@ -286,16 +288,6 @@ export async function createEvent(
     return { success: false, error: 'Calendar not found' }
   }
 
-  const account = db
-    .select()
-    .from(caldavAccounts)
-    .where(eq(caldavAccounts.id, cal.accountId))
-    .get()
-
-  if (!account) {
-    return { success: false, error: 'Account not found' }
-  }
-
   const uid = crypto.randomUUID()
   const rawIcal = buildVEvent({
     uid,
@@ -311,17 +303,30 @@ export async function createEvent(
   let url = `${cal.url}${filename}`
   let etag: string | null = null
 
-  try {
-    const result = await pushEvent(
-      { serverUrl: account.serverUrl, username: account.username, password: account.password },
-      cal.url,
-      filename,
-      rawIcal,
-    )
-    url = result.url
-    etag = result.etag
-  } catch (err) {
-    return { success: false, error: `Failed to push to server: ${err instanceof Error ? err.message : String(err)}` }
+  if (cal.isLocal) {
+    const { computeEtag } = await import('@/lib/caldav/server/etag')
+    etag = computeEtag(rawIcal)
+  } else {
+    const account = cal.accountId
+      ? db.select().from(caldavAccounts).where(eq(caldavAccounts.id, cal.accountId)).get()
+      : null
+
+    if (!account) {
+      return { success: false, error: 'Account not found' }
+    }
+
+    try {
+      const result = await pushEvent(
+        { serverUrl: account.serverUrl, username: account.username, password: account.password },
+        cal.url,
+        filename,
+        rawIcal,
+      )
+      url = result.url
+      etag = result.etag
+    } catch (err) {
+      return { success: false, error: `Failed to push to server: ${err instanceof Error ? err.message : String(err)}` }
+    }
   }
 
   const now = Date.now()
@@ -346,6 +351,14 @@ export async function createEvent(
     })
     .returning()
     .all()
+
+  // Update ctag for local calendars
+  if (cal.isLocal) {
+    db.update(calendars)
+      .set({ ctag: String(now), updatedAt: now })
+      .where(eq(calendars.id, cal.id))
+      .run()
+  }
 
   revalidatePath('/calendar')
   return { success: true, data: created }
@@ -376,10 +389,6 @@ export async function updateEvent(
     .where(eq(calendars.id, event.calendarId))
     .get()
 
-  const account = cal
-    ? db.select().from(caldavAccounts).where(eq(caldavAccounts.id, cal.accountId)).get()
-    : null
-
   // Update iCal
   const updatedIcal = updateVEvent(event.rawIcal, {
     title: parsed.data.title,
@@ -390,24 +399,34 @@ export async function updateEvent(
     allDay: parsed.data.allDay,
   })
 
-  // Push to remote
   let newEtag = event.etag
-  if (account && cal && event.url && event.etag) {
-    try {
-      const result = await updateRemoteEvent(
-        { serverUrl: account.serverUrl, username: account.username, password: account.password },
-        cal.url,
-        event.url,
-        updatedIcal,
-        event.etag,
-      )
-      newEtag = result.etag ?? event.etag
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      if (message.includes('412')) {
-        return { success: false, error: 'Conflict: event was modified on the server. Please sync and try again.' }
+
+  if (cal?.isLocal) {
+    const { computeEtag } = await import('@/lib/caldav/server/etag')
+    newEtag = computeEtag(updatedIcal)
+  } else {
+    const account = cal?.accountId
+      ? db.select().from(caldavAccounts).where(eq(caldavAccounts.id, cal.accountId)).get()
+      : null
+
+    // Push to remote
+    if (account && cal && event.url && event.etag) {
+      try {
+        const result = await updateRemoteEvent(
+          { serverUrl: account.serverUrl, username: account.username, password: account.password },
+          cal.url,
+          event.url,
+          updatedIcal,
+          event.etag,
+        )
+        newEtag = result.etag ?? event.etag
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        if (message.includes('412')) {
+          return { success: false, error: 'Conflict: event was modified on the server. Please sync and try again.' }
+        }
+        return { success: false, error: `Failed to update on server: ${message}` }
       }
-      return { success: false, error: `Failed to update on server: ${message}` }
     }
   }
 
@@ -430,6 +449,14 @@ export async function updateEvent(
     .where(eq(events.id, parsed.data.id))
     .returning()
     .all()
+
+  // Update ctag for local calendars
+  if (cal?.isLocal) {
+    db.update(calendars)
+      .set({ ctag: String(now), updatedAt: now })
+      .where(eq(calendars.id, cal.id))
+      .run()
+  }
 
   revalidatePath('/calendar')
   return { success: true, data: updated }
@@ -459,24 +486,35 @@ export async function deleteEvent(
     .where(eq(calendars.id, event.calendarId))
     .get()
 
-  const account = cal
-    ? db.select().from(caldavAccounts).where(eq(caldavAccounts.id, cal.accountId)).get()
-    : null
+  // Delete from remote only for non-local calendars
+  if (!cal?.isLocal) {
+    const account = cal?.accountId
+      ? db.select().from(caldavAccounts).where(eq(caldavAccounts.id, cal.accountId)).get()
+      : null
 
-  // Delete from remote
-  if (account && event.url && event.etag) {
-    try {
-      await deleteRemoteEvent(
-        { serverUrl: account.serverUrl, username: account.username, password: account.password },
-        event.url,
-        event.etag,
-      )
-    } catch (err) {
-      return { success: false, error: `Failed to delete from server: ${err instanceof Error ? err.message : String(err)}` }
+    if (account && event.url && event.etag) {
+      try {
+        await deleteRemoteEvent(
+          { serverUrl: account.serverUrl, username: account.username, password: account.password },
+          event.url,
+          event.etag,
+        )
+      } catch (err) {
+        return { success: false, error: `Failed to delete from server: ${err instanceof Error ? err.message : String(err)}` }
+      }
     }
   }
 
   db.delete(events).where(eq(events.id, parsed.data)).run()
+
+  // Update ctag for local calendars
+  if (cal?.isLocal) {
+    const now = Date.now()
+    db.update(calendars)
+      .set({ ctag: String(now), updatedAt: now })
+      .where(eq(calendars.id, cal.id))
+      .run()
+  }
 
   revalidatePath('/calendar')
   return { success: true, data: { id: parsed.data } }
